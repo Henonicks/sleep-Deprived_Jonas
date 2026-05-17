@@ -14,10 +14,20 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#ifndef FILE_LIST
+#define FILE_LIST
 
-int main() {
-	configure();
-	run();
-	return 0;
-}
+#include <vector>
+#include <filesystem>
+
+namespace stdfs = std::filesystem;
+
+inline std::vector <stdfs::directory_entry> file_entries;
+inline std::string file_list_str;
+
+constexpr std::string insert_tabs(int tabs);
+[[nodiscard]] std::vector <stdfs::directory_entry> make_file_list_impl(std::string_view path, int depth);
+[[nodiscard]] std::vector <stdfs::directory_entry> make_file_list(std::string_view path);
+[[nodiscard]] std::string trim_file_list(size_t line);
+
+#endif

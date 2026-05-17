@@ -4,4 +4,6 @@ out/
 .vscode/
 .idea/
 tmp/
-config.json
+config/
+logging/
+resources/

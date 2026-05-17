@@ -14,10 +14,22 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#include "jonas/logging.hpp"
 
-int main() {
-	configure();
-	run();
-	return 0;
+#include <filesystem>
+
+void logger::open() {
+	if (!std::filesystem::is_directory("../logging")) {
+		std::filesystem::create_directory("../logging");
+	}
+	logfile.open("../logging/logfile.log");
+	dpp_logfile.open("../logging/dpp_logfile.log");
+}
+
+void logger::log(std::string_view const msg) {
+	logfile << '[' << dpp::utility::current_date_time() << "]: " << msg << std::endl;
+}
+
+void logger::dpp_log(dpp::log_t const& log) {
+	dpp_logfile << '[' << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(log.severity) << ": " << log.message << std::endl;
 }

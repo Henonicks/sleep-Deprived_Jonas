@@ -1,0 +1,2 @@
+/BOT_TOKEN\ | "" # The token of your Discord bot, found on the Discord Developer Portal
+/CHANNEL_ID\ | 0 # The ID of your voice channel.

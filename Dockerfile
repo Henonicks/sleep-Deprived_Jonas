@@ -1,14 +1,12 @@
-# replace 'templatebot' with the name of your bot in the paths
-
 FROM brainboxdotcc/dpp:latest
 
-WORKDIR /usr/src/templatebot
+WORKDIR /usr/src/sleepless_jonas
 
 COPY . .
 
-WORKDIR /usr/src/templatebot/build
+WORKDIR /usr/src/sleepless_jonas/build
 
 RUN cmake ..
 RUN make -j$(nproc)
 
-ENTRYPOINT [ "/usr/src/templatebot/build/templatebot" ]
+ENTRYPOINT [ "/usr/src/sleepless_jonas/build/sleepless_jonas" ]

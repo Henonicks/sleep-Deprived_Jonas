@@ -14,10 +14,8 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#include "jonas/exception.hpp"
 
-int main() {
-	configure();
-	run();
-	return 0;
+char const* self_invoked_exception::what() const noexcept {
+	return self_invoked_exception::the_what.data();
 }

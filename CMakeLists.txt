@@ -1,18 +1,20 @@
 cmake_minimum_required (VERSION 3.15)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(BOT_NAME "templatebot")
+set(BOT_NAME "sleepless_jonas")
 
 project(${BOT_NAME})
 aux_source_directory("src" coresrc)
 add_executable(${BOT_NAME} ${coresrc})
+
+add_subdirectory(Henifig)
 
 string(ASCII 27 Esc)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties(${BOT_NAME} PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
 )
 
@@ -44,6 +46,9 @@ target_link_libraries(${BOT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     ${OPENSSL_CRYPTO_LIBRARY} 
     ${OPENSSL_SSL_LIBRARY}
+    henifig
+    sndfile
+    samplerate
 )
 
 if (DPP_FOUND)

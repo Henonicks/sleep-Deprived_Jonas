@@ -14,10 +14,16 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#ifndef EXCEPTION
+#define EXCEPTION
 
-int main() {
-	configure();
-	run();
-	return 0;
-}
+#include <exception>
+#include <string_view>
+
+class self_invoked_exception final : std::exception {
+public:
+	static constexpr std::string_view the_what = "self_invoked_exception";
+	[[nodiscard]] char const* what() const noexcept override;
+};
+
+#endif

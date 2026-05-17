@@ -14,10 +14,11 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#ifndef CFG
+#define CFG
 
-int main() {
-	configure();
-	run();
-	return 0;
-}
+void configure();
+void start_player();
+void init_player();
+
+#endif

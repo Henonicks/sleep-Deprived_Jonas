@@ -14,10 +14,23 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#ifndef AUDIO_PLAYER
+#define AUDIO_PLAYER
 
-int main() {
-	configure();
-	run();
-	return 0;
-}
+#include <condition_variable>
+
+#include <sndfile.h>
+
+inline std::condition_variable join_cv;
+inline std::atomic <bool> someone_joined;
+
+inline size_t passed_files, failed_files;
+
+[[nodiscard]] int16_t* mono_to_stereo(int16_t const input[], sf_count_t input_size);
+[[nodiscard]] int16_t* to_stereo(int16_t const input[], sf_count_t input_size, int channels);
+[[nodiscard]] int16_t* trim_off_silence(int16_t const input[], sf_count_t input_size, sf_count_t* output_size);
+void wait_for_another_user();
+void send_audio(int16_t const input[], size_t input_size);
+void play_file(size_t file_num, bool to_prepend_silence);
+
+#endif

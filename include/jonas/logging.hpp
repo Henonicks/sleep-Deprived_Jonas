@@ -14,10 +14,22 @@
  * limitations under the License.
 ***************************************************************************/
 
-#include "jonas/jonas.hpp"
+#ifndef LOGGING
+#define LOGGING
 
-int main() {
-	configure();
-	run();
-	return 0;
-}
+#include <fstream>
+
+#include <dpp/dispatcher.h>
+
+class logger {
+	static inline std::ofstream logfile{};
+	static inline std::ofstream dpp_logfile{};
+public:
+	logger() = delete;
+	static void open();
+
+	static void log(std::string_view msg);
+	static void dpp_log(dpp::log_t const& log);
+};
+
+#endif

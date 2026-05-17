@@ -1,3 +1,6 @@
 [submodule "DPP"]
 	path = DPP
 	url = https://github.com/brainboxdotcc/DPP
+[submodule "Henifig"]
+	path = Henifig
+	url = https://github.com/Henonicks/Henifig
