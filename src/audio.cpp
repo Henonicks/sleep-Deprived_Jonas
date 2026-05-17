@@ -127,8 +127,8 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 				),
 				samples_to_send * 2
 			);
-			while (voice_client->get_secs_remaining() > 0.015f) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			while (voice_client->get_secs_remaining() > 0.045f) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(30));
 			}
 		}
 		else if (PAUSE_WHEN_ALONE) {
@@ -140,6 +140,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
+	std::this_thread::sleep_for(std::chrono::milliseconds(static_cast <int>(voice_client->get_secs_remaining() * 1000)));
 }
 
 int16_t* prepend_silence(int16_t const input[], sf_count_t const input_size, sf_count_t const silence_samples) {
