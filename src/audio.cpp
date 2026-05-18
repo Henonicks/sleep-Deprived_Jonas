@@ -160,7 +160,7 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 		else {
 			audio_file = SndfileHandle(path, SFM_READ);
 		}
-		int channels = audio_file.channels();
+		int const channels = audio_file.channels();
 		sf_count_t const frames = audio_file.frames();
 		sf_count_t const samplerate = audio_file.samplerate();
 		sf_count_t samples = frames * channels;
@@ -175,7 +175,6 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			throw self_invoked_exception{};
 		}
 
-		size_t int16_buffer_bytes;
 		std::unique_ptr <int16_t[]> int16_sample_buffer;
 
 		if (samplerate != TARGET_SAMPLE_RATE) {
@@ -208,9 +207,8 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			samples = new_samples;
 		}
 		else {
-			int16_buffer_bytes = samples * sizeof(int16_t);
 			int16_sample_buffer.reset(new int16_t[samples]);
-			audio_file.read(int16_sample_buffer.get(), int16_buffer_bytes);
+			audio_file.read(int16_sample_buffer.get(), samples);
 		}
 		if (channels != 2) {
 			logger::log("Non-stereo audio is unplayable by D++. Converting.");
@@ -222,20 +220,18 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			int16_sample_buffer.reset(stereo_sample_buffer);
 			samples = samples / channels * 2;
 			logger::log("New sample count: " + std::to_string(samples));
-			channels = 2;
 		}
 		int16_t* const silence_less = trim_off_silence(int16_sample_buffer.get(), samples, &samples);
 		if (silence_less == nullptr) {
 			throw self_invoked_exception{};
 		}
 		int16_sample_buffer.reset(silence_less);
-		int16_buffer_bytes = samples * sizeof(int16_t);
 		if (to_prepend_silence) {
 			logger::log("No song has been sent yet. Prepending silence.");
 			int16_sample_buffer.reset(prepend_silence(int16_sample_buffer.get(), samples, TARGET_SAMPLE_RATE));
 			samples += TARGET_SAMPLE_RATE;
-			int16_buffer_bytes = samples * sizeof(int16_t);
 		}
+		size_t const int16_buffer_bytes = samples * sizeof(int16_t);
 		logger::log("To be played size (in bytes): " + std::to_string(int16_buffer_bytes));
 		if (int16_buffer_bytes % 4 != 0) {
 			logger::log("The size isn't divisible by 4 and the audio is therefore unplayable!");
@@ -261,7 +257,7 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			++passed_files;
 		}
 	}
-	catch (self_invoked_exception const& e) {}
+	catch (self_invoked_exception const&) {}
 	catch (std::exception const& e) {
 		logger::log(std::string("Uncaught exception: ") + e.what());
 		if (TEST_MODE) {
