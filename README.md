@@ -16,6 +16,27 @@ into the format that's playable by D++: raw PCM data containing 16-bit signed st
 program assumes the format of the current file is the one specified by its extension. So if a file is named `audio.wav`,
 it will open it as a WAV file. So if the header is missing/corrupted, the program will fail and continue iterating.
 
+Here's what the program does to play the files:
+
+- Open the `resources` directory
+- Recursively open the directories in there
+  - Each file/directory found is put in a buffer
+    - Every entry in a directory is sorted using a human-sort algorithm, prioritising directories
+  - Each file is opened one-by-one, in the order they have been iterated (and sorted) through
+
+## Features
+
+Apart from the main feature, which is playing audio, Jonas will also make sure that:
+
+- A message with the list of files somewhere under `resources` is sent.
+  - The currently playing file will be made **bold** with the \*\*surround\*\*.
+- Should you wish for that, the audio files aren't played but simply tested for validity.
+  - The verdict for each file separately is stated in `logging/logfile.log`.
+  - The overall verdict for all the considered entries is stated in stdout (usually the console).
+
+If the feature is not simply playing audio, you can control it. You can't control it at runtime though.
+The configs are only opened and read once, at the beginning of execution.
+
 ## Prerequisites
 
 - A C++-17-capable compiler
@@ -42,8 +63,9 @@ Now configure the CMake project and build it:
 Simply run the program once, and it will create the default config files for you to edit. `config/behaviour.hfg` is always
 required while `config/jonas.hfg` is only required if you're deploying the bot (e.g. not simply testing the files);
 
-The default `config/behaviour.hfg` can be found here: [behaviour.hfg](default_configs/behaviour.hfg)
-The default `config/jonas.hfg` can be found here: [jonas.hfg](default_configs/jonas.hfg)
+The default `config/behaviour.hfg` can be found here: [default_configs/behaviour.hfg](default_configs/behaviour.hfg)
+
+The default `config/jonas.hfg` can be found here: [default_configs/jonas.hfg](default_configs/jonas.hfg)
 
 ### Executing
 
@@ -51,6 +73,12 @@ Simply make sure you're in the build directory and run the generated executable:
 
     cd build
     ./sleepless_jonas
+
+## Monitoring
+
+If something went wrong with the decoding/conversion of a file, you can peek at `logging/logfile.log` that will automatically
+be created for you if it doesn't exist. If something went wrong, and it's something D++ knows more about, take a look at `dpp_logfile.log`
+in the same location.
 
 ## Extending the bot
 
