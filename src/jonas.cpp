@@ -26,7 +26,7 @@ void run() {
 						std::terminate();
 					}
 					GUILD_ID = callback.get <dpp::channel>().guild_id;
-					ready.from()->connect_voice(GUILD_ID, CHANNEL_ID, false, true);
+					ready.from()->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
 				});
 			}
 		});
