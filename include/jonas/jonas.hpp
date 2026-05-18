@@ -44,6 +44,7 @@ constexpr int TARGET_SAMPLE_RATE = 48'000;
 constexpr int TARGET_CHANNELS = 2;
 inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
+inline bool DISPLAY_PLAYLIST = true;
 inline bool TEST_MODE = false;
 
 inline dpp::discord_voice_client* voice_client;

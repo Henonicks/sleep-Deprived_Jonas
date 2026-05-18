@@ -239,15 +239,17 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 		}
 		played_once = true;
 		if (!TEST_MODE) {
-			dpp::message msg(CHANNEL_ID, trim_file_list(file_num));
-			msg.id = MESSAGE_ID;
-			bot->message_edit(msg, [msg](dpp::confirmation_callback_t const& edit_callback) {
-				if (edit_callback.is_error() && edit_callback.get_error().code == dpp::err_unknown_message) {
-					bot->message_create(msg, [](dpp::confirmation_callback_t const& create_callback) {
-						MESSAGE_ID = create_callback.get <dpp::message>().id;
-					});
-				}
-			});
+			if (DISPLAY_PLAYLIST) {
+				dpp::message msg(CHANNEL_ID, trim_file_list(file_num));
+				msg.id = MESSAGE_ID;
+				bot->message_edit(msg, [msg](dpp::confirmation_callback_t const& edit_callback) {
+					if (edit_callback.is_error() && edit_callback.get_error().code == dpp::err_unknown_message) {
+						bot->message_create(msg, [](dpp::confirmation_callback_t const& create_callback) {
+							MESSAGE_ID = create_callback.get <dpp::message>().id;
+						});
+					}
+				});
+			}
 			logger::log("Playing now!");
 			send_audio(int16_sample_buffer.get(), samples);
 			std::this_thread::sleep_for(std::chrono::seconds(TRANSITION_DELAY_SECONDS));
