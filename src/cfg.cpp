@@ -43,6 +43,12 @@ void configure() {
 		catch (henifig::retrieval_exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to pausing when alone, " << std::boolalpha << PAUSE_WHEN_ALONE << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
+		try {
+			DISPLAY_PLAYLIST = general_config["DISPLAY_PLAYLIST"];
+		}
+		catch (henifig::retrieval_exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to displaying the playlist, " << std::boolalpha << DISPLAY_PLAYLIST << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
 	}
 	catch (henifig::parse_exception const& e) {
 		critical_whats += std::string("behaviour.hfg: ") + e.what() + '\n';
@@ -140,11 +146,19 @@ void start_player() {
 
 void init_player() {
 	if (!TEST_MODE) {
-		bot->message_create(dpp::message(CHANNEL_ID, "Initialising..."), [](dpp::confirmation_callback_t const& callback) {
-			MESSAGE_ID = callback.get <dpp::message>().id;
+		auto const detach_audio_player = [] {
 			std::thread audio_player_thread(start_player);
 			audio_player_thread.detach();
-		});
+		};
+		if (DISPLAY_PLAYLIST) {
+			bot->message_create(dpp::message(CHANNEL_ID, "Initialising..."), [detach_audio_player](dpp::confirmation_callback_t const& callback) {
+				MESSAGE_ID = callback.get <dpp::message>().id;
+				detach_audio_player();
+			});
+		}
+		else {
+			detach_audio_player();
+		}
 	}
 	else {
 		start_player();
