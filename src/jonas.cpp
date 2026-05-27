@@ -22,31 +22,52 @@ void run() {
 			if (dpp::run_once <struct init_audio_player>()) {
 				bot->channel_get(CHANNEL_ID, [ready](dpp::confirmation_callback_t const& callback) {
 					if (callback.is_error()) {
-						std::cerr << "Couldn't get the channel to join to! " + callback.get_error().human_readable << '\n';
+						std::cerr << "Couldn't get the channel to join! " + callback.get_error().human_readable << '\n';
 						std::terminate();
 					}
+					shard = ready.from();
 					GUILD_ID = callback.get <dpp::channel>().guild_id;
-					ready.from()->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
+					shard->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
 				});
 			}
 		});
 
-		bot->on_voice_ready([](dpp::voice_ready_t const& event) {
+		bot->on_voice_ready([](dpp::voice_ready_t const&) {
 			if (dpp::run_once <struct establish_connection>()) {
-				voice_client = event.from()->get_voice(GUILD_ID)->voiceclient.get();
 				init_player();
+			}
+			std::shared_lock L(shard->voice_mutex);
+			dpp::discord_voice_client* const voice_client = get_voice_client();
+			if (voice_client != nullptr) {
+				voice_client->stop_audio();
 			}
 		});
 
 		bot->on_voice_state_update([](dpp::voice_state_update_t const& event) {
 			if (event.state.channel_id.empty()) {
 				if (event.state.user_id == bot->me.id) {
-					bot->shutdown();
+					shard->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
+				}
+			}
+			else if (event.state.user_id == bot->me.id) {
+				if (event.state.channel_id != CHANNEL_ID) {
+					if (!SNAP_TO_CHANNEL) {
+						CHANNEL_ID = event.state.channel_id;
+					}
+					std::shared_lock L(shard->voice_mutex);
+					dpp::discord_voice_client* const voice_client = get_voice_client();
+					if (voice_client == nullptr) {
+						L.unlock();
+						shard->disconnect_voice(GUILD_ID);
+						// We need to do this because otherwise the bot won't connect to the channels it joins
+					}
 				}
 			}
 			else if (PAUSE_WHEN_ALONE) {
-				someone_joined = true;
-				join_cv.notify_one();
+				if (event.state.channel_id == CHANNEL_ID) {
+					someone_joined = true;
+					join_cv.notify_one();
+				}
 			}
 		});
 
@@ -57,4 +78,12 @@ void run() {
 		std::cout << "Passed: " << passed_files << "\nFailed: " << failed_files << '\n';
 		logger::log("Passed: " + std::to_string(passed_files) + "\nFailed: " + std::to_string(failed_files));
 	}
+}
+
+dpp::discord_voice_client* get_voice_client() {
+	dpp::voiceconn* const voice_connection = shard->get_voice(GUILD_ID);
+	if (voice_connection == nullptr) {
+		return nullptr;
+	}
+	return voice_connection->voiceclient.get();
 }
