@@ -1,4 +1,5 @@
 /TRANSITION_DELAY_SECONDS\ | 1 # The delay to wait between each song
 /PAUSE_WHEN_ALONE\ | false # Whether to pause the currently playing song if there's no one else in the channel or not
 /DISPLAY_PLAYLIST\ | true # Whether to send a message showing the playlist and highlighting the currently playing track
+/SNAP_TO_CHANNEL\ | true # Whether to "snap" to the original channel (e.g. rejoin every time the bot is moved into another one)
 /TEST_MODE\ | false # Whether to test the files without playing them or to join the voice channel and try to play the files

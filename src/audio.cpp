@@ -121,14 +121,36 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 	for (int i = 0; i < input_size; i += dpp::send_audio_raw_max_length / 2) {
 		auto const samples_to_send = std::min <sf_count_t>(dpp::send_audio_raw_max_length / 2, input_size - i);
 		if (dpp::find_channel(CHANNEL_ID)->get_voice_members().size() > 1) {
-			voice_client->send_audio_raw(
-				reinterpret_cast <uint16_t*>(
-					const_cast <int16_t*>(input + i)
-				),
-				samples_to_send * 2
-			);
-			while (voice_client->get_secs_remaining() > 0.045f) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(30));
+			std::shared_lock L(shard->voice_mutex);
+			dpp::discord_voice_client* voice_client = get_voice_client();
+			if (voice_client != nullptr) {
+				voice_client->send_audio_raw(
+					reinterpret_cast <uint16_t*>(
+						const_cast <int16_t*>(input + i)
+					),
+					samples_to_send * 2
+				);
+				L.unlock();
+				while (true) {
+					std::shared_lock L2(shard->voice_mutex);
+					voice_client = get_voice_client();
+					if (voice_client != nullptr) {
+						if (voice_client->get_secs_remaining() > 0.045f) {
+							L2.unlock();
+							std::this_thread::sleep_for(std::chrono::milliseconds(30));
+						}
+						else {
+							break;
+						}
+					}
+					else {
+						L2.unlock();
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
+					}
+				}
+			}
+			if (voice_client == nullptr) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 			}
 		}
 		else if (PAUSE_WHEN_ALONE) {
@@ -140,7 +162,11 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(static_cast <int>(voice_client->get_secs_remaining() * 1000)));
+	std::cout << "fell out\n";
+	dpp::discord_voice_client* const voice_client = get_voice_client();
+	if (voice_client != nullptr) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast <int>(voice_client->get_secs_remaining() * 1000)));
+	}
 }
 
 int16_t* prepend_silence(int16_t const input[], sf_count_t const input_size, sf_count_t const silence_samples) {

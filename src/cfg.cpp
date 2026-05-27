@@ -49,6 +49,12 @@ void configure() {
 		catch (henifig::retrieval_exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to displaying the playlist, " << std::boolalpha << DISPLAY_PLAYLIST << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
+		try {
+			SNAP_TO_CHANNEL = general_config["SNAP_TO_CHANNEL"];
+		}
+		catch (henifig::retrieval_exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to snapping to the original channel, " << std::boolalpha << SNAP_TO_CHANNEL << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
 	}
 	catch (henifig::parse_exception const& e) {
 		critical_whats += std::string("behaviour.hfg: ") + e.what() + '\n';
@@ -78,8 +84,8 @@ void configure() {
 			if (BOT_TOKEN.empty()) {
 				critical_whats += "jonas.hfg: No bot token provided! Edit config/jonas.hfg to fix this!\n";
 			}
-			CHANNEL_ID = config["CHANNEL_ID"];
-			if (CHANNEL_ID.empty()) {
+			CHANNEL_ID.store(config["CHANNEL_ID"]);
+			if (CHANNEL_ID.load().empty()) {
 				critical_whats += "jonas.hfg: No channel ID provided! Edit config/jonas.hfg to fix this!\n";
 			}
 

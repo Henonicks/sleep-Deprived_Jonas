@@ -45,17 +45,20 @@ constexpr int TARGET_CHANNELS = 2;
 inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
+inline bool SNAP_TO_CHANNEL = true;
 inline bool TEST_MODE = false;
-
-inline dpp::discord_voice_client* voice_client;
 
 namespace stdfs = std::filesystem;
 
-inline dpp::snowflake GUILD_ID, CHANNEL_ID, MESSAGE_ID;
+inline std::atomic <dpp::snowflake> CHANNEL_ID;
+inline dpp::snowflake GUILD_ID, MESSAGE_ID;
 inline dpp::cluster* bot;
+inline dpp::discord_client* shard;
 
 inline bool played_once;
 
 void run();
+
+dpp::discord_voice_client* get_voice_client();
 
 #endif
