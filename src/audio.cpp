@@ -18,6 +18,8 @@
 
 #include "jonas/jonas.hpp"
 
+#include <dpp/unicode_emoji.h>
+
 [[nodiscard]] int16_t* mono_to_stereo(int16_t const input[], sf_count_t const input_size) {
 	if (input_size == 0) {
 		logger::log("The data is reportedly empty! There is nothing to convert!");
@@ -137,7 +139,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 					if (voice_client != nullptr) {
 						if (voice_client->get_secs_remaining() > 0.045f) {
 							L2.unlock();
-							std::this_thread::sleep_for(std::chrono::milliseconds(30));
+							std::this_thread::sleep_for(std::chrono::milliseconds(20));
 						}
 						else {
 							break;
@@ -271,6 +273,7 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 					if (edit_callback.is_error() && edit_callback.get_error().code == dpp::err_unknown_message) {
 						bot->message_create(msg, [](dpp::confirmation_callback_t const& create_callback) {
 							MESSAGE_ID = create_callback.get <dpp::message>().id;
+							bot->message_add_reaction(MESSAGE_ID, CHANNEL_ID, dpp::unicode_emoji::white_check_mark);
 						});
 					}
 				});

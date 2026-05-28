@@ -18,6 +18,8 @@
 
 #include "jonas/jonas.hpp"
 
+#include <dpp/unicode_emoji.h>
+
 void configure() {
 	logger::open();
 	std::string critical_whats;
@@ -159,6 +161,7 @@ void init_player() {
 		if (DISPLAY_PLAYLIST) {
 			bot->message_create(dpp::message(CHANNEL_ID, "Initialising..."), [detach_audio_player](dpp::confirmation_callback_t const& callback) {
 				MESSAGE_ID = callback.get <dpp::message>().id;
+				bot->message_add_reaction(MESSAGE_ID, CHANNEL_ID, dpp::unicode_emoji::white_check_mark);
 				detach_audio_player();
 			});
 		}
