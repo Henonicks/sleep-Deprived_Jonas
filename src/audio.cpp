@@ -164,9 +164,12 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
+	std::shared_lock L(shard->voice_mutex);
 	dpp::discord_voice_client* const voice_client = get_voice_client();
 	if (voice_client != nullptr) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast <int>(voice_client->get_secs_remaining() * 1000)));
+		std::chrono::milliseconds const sleep_time{static_cast <int>(voice_client->get_secs_remaining() * 1000)};
+		L.unlock();
+		std::this_thread::sleep_for(sleep_time);
 	}
 }
 
