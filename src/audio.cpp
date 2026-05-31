@@ -18,6 +18,8 @@
 
 #include "jonas/jonas.hpp"
 
+#include <dpp/unicode_emoji.h>
+
 [[nodiscard]] int16_t* mono_to_stereo(int16_t const input[], sf_count_t const input_size) {
 	if (input_size == 0) {
 		logger::log("The data is reportedly empty! There is nothing to convert!");
@@ -121,7 +123,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 	for (int i = 0; i < input_size; i += dpp::send_audio_raw_max_length / 2) {
 		auto const samples_to_send = std::min <sf_count_t>(dpp::send_audio_raw_max_length / 2, input_size - i);
 		if (dpp::find_channel(CHANNEL_ID)->get_voice_members().size() > 1) {
-			std::shared_lock L(shard->voice_mutex);
+			std::shared_lock L(shard()->voice_mutex);
 			dpp::discord_voice_client* voice_client = get_voice_client();
 			if (voice_client != nullptr) {
 				voice_client->send_audio_raw(
@@ -132,12 +134,12 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 				);
 				L.unlock();
 				while (true) {
-					std::shared_lock L2(shard->voice_mutex);
+					std::shared_lock L2(shard()->voice_mutex);
 					voice_client = get_voice_client();
 					if (voice_client != nullptr) {
 						if (voice_client->get_secs_remaining() > 0.045f) {
 							L2.unlock();
-							std::this_thread::sleep_for(std::chrono::milliseconds(30));
+							std::this_thread::sleep_for(std::chrono::milliseconds(20));
 						}
 						else {
 							break;
@@ -162,10 +164,12 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
-	std::cout << "fell out\n";
+	std::shared_lock L(shard()->voice_mutex);
 	dpp::discord_voice_client* const voice_client = get_voice_client();
 	if (voice_client != nullptr) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(static_cast <int>(voice_client->get_secs_remaining() * 1000)));
+		std::chrono::milliseconds const sleep_time{static_cast <int>(voice_client->get_secs_remaining() * 1000)};
+		L.unlock();
+		std::this_thread::sleep_for(sleep_time);
 	}
 }
 
@@ -272,6 +276,7 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 					if (edit_callback.is_error() && edit_callback.get_error().code == dpp::err_unknown_message) {
 						bot->message_create(msg, [](dpp::confirmation_callback_t const& create_callback) {
 							MESSAGE_ID = create_callback.get <dpp::message>().id;
+							bot->message_add_reaction(MESSAGE_ID, CHANNEL_ID, dpp::unicode_emoji::white_check_mark);
 						});
 					}
 				});
