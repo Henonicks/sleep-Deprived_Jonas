@@ -123,7 +123,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 	for (int i = 0; i < input_size; i += dpp::send_audio_raw_max_length / 2) {
 		auto const samples_to_send = std::min <sf_count_t>(dpp::send_audio_raw_max_length / 2, input_size - i);
 		if (dpp::find_channel(CHANNEL_ID)->get_voice_members().size() > 1) {
-			std::shared_lock L(shard->voice_mutex);
+			std::shared_lock L(shard()->voice_mutex);
 			dpp::discord_voice_client* voice_client = get_voice_client();
 			if (voice_client != nullptr) {
 				voice_client->send_audio_raw(
@@ -134,7 +134,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 				);
 				L.unlock();
 				while (true) {
-					std::shared_lock L2(shard->voice_mutex);
+					std::shared_lock L2(shard()->voice_mutex);
 					voice_client = get_voice_client();
 					if (voice_client != nullptr) {
 						if (voice_client->get_secs_remaining() > 0.045f) {
@@ -164,7 +164,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
-	std::shared_lock L(shard->voice_mutex);
+	std::shared_lock L(shard()->voice_mutex);
 	dpp::discord_voice_client* const voice_client = get_voice_client();
 	if (voice_client != nullptr) {
 		std::chrono::milliseconds const sleep_time{static_cast <int>(voice_client->get_secs_remaining() * 1000)};

@@ -25,9 +25,8 @@ void run() {
 						std::cerr << "Couldn't get the channel to join! " + callback.get_error().human_readable << '\n';
 						std::terminate();
 					}
-					shard = ready.from();
 					GUILD_ID = callback.get <dpp::channel>().guild_id;
-					shard->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
+					shard()->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
 				});
 			}
 		});
@@ -36,7 +35,7 @@ void run() {
 			if (dpp::run_once <struct establish_connection>()) {
 				init_player();
 			}
-			std::shared_lock L(shard->voice_mutex);
+			std::shared_lock L(shard()->voice_mutex);
 			dpp::discord_voice_client* const voice_client = get_voice_client();
 			if (voice_client != nullptr) {
 				voice_client->stop_audio();
@@ -46,7 +45,7 @@ void run() {
 		bot->on_voice_state_update([](dpp::voice_state_update_t const& event) {
 			if (event.state.channel_id.empty()) {
 				if (event.state.user_id == bot->me.id) {
-					shard->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
+					shard()->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
 				}
 			}
 			else if (event.state.user_id == bot->me.id) {
@@ -54,11 +53,11 @@ void run() {
 					if (!SNAP_TO_CHANNEL) {
 						CHANNEL_ID = event.state.channel_id;
 					}
-					std::shared_lock L(shard->voice_mutex);
+					std::shared_lock L(shard()->voice_mutex);
 					dpp::discord_voice_client* const voice_client = get_voice_client();
 					if (voice_client == nullptr) {
 						L.unlock();
-						shard->disconnect_voice(GUILD_ID);
+						shard()->disconnect_voice(GUILD_ID);
 						// We need to do this because otherwise the bot won't connect to the channels it joins
 					}
 				}
@@ -80,8 +79,12 @@ void run() {
 	}
 }
 
+dpp::discord_client* shard() {
+	return bot->get_shard(0);
+}
+
 dpp::discord_voice_client* get_voice_client() {
-	dpp::voiceconn* const voice_connection = shard->get_voice(GUILD_ID);
+	dpp::voiceconn* const voice_connection = shard()->get_voice(GUILD_ID);
 	if (voice_connection == nullptr) {
 		return nullptr;
 	}
