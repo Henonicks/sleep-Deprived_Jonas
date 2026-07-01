@@ -137,7 +137,7 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 					std::shared_lock L2(shard()->voice_mutex);
 					voice_client = get_voice_client();
 					if (voice_client != nullptr) {
-						if (voice_client->get_secs_remaining() > 0.045f) {
+						if (voice_client->get_secs_remaining() > 1.0f) {
 							L2.unlock();
 							std::this_thread::sleep_for(std::chrono::milliseconds(20));
 						}

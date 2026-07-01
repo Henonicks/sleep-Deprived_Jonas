@@ -53,6 +53,7 @@ namespace stdfs = std::filesystem;
 inline std::atomic <dpp::snowflake> CHANNEL_ID;
 inline dpp::snowflake GUILD_ID, MESSAGE_ID;
 inline dpp::cluster* bot;
+inline dpp::discord_client* prev_shard;
 dpp::discord_client* shard();
 
 inline bool played_once;

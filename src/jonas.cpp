@@ -26,7 +26,8 @@ void run() {
 						std::terminate();
 					}
 					GUILD_ID = callback.get <dpp::channel>().guild_id;
-					shard()->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
+					prev_shard = ready.from();
+					prev_shard->connect_voice(GUILD_ID, CHANNEL_ID, false, true, true);
 				});
 			}
 		});
@@ -80,6 +81,11 @@ void run() {
 }
 
 dpp::discord_client* shard() {
+	dpp::discord_client* const curr_shard = bot->get_shard(0);
+	if (curr_shard != prev_shard) {
+		prev_shard = curr_shard;
+		curr_shard->disconnect_voice(GUILD_ID);
+	}
 	return bot->get_shard(0);
 }
 

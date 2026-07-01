@@ -92,7 +92,7 @@ void configure() {
 			}
 
 			if (critical_whats.empty()) {
-				bot = new dpp::cluster(BOT_TOKEN, dpp::i_default_intents | dpp::i_guilds);
+				bot = new dpp::cluster(BOT_TOKEN, dpp::i_default_intents);
 				bot->on_log(logger::dpp_log);
 			}
 		}
