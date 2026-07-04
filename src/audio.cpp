@@ -181,6 +181,7 @@ int16_t* prepend_silence(int16_t const input[], sf_count_t const input_size, sf_
 }
 
 void play_file(size_t const file_num, bool const to_prepend_silence) {
+	bool failed{};
 	try {
 		SndfileHandle audio_file;
 		auto const& path = file_entries[file_num].path();
@@ -274,7 +275,12 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 				msg.id = MESSAGE_ID;
 				bot->message_edit(msg, [msg](dpp::confirmation_callback_t const& edit_callback) {
 					if (edit_callback.is_error() && edit_callback.get_error().code == dpp::err_unknown_message) {
+						logger::log("Error editing the playlist message! Creating a new one.");
 						bot->message_create(msg, [](dpp::confirmation_callback_t const& create_callback) {
+							if (create_callback.is_error()) {
+								logger::log("Error creating the playlist message! Giving up.");
+								return;
+							}
 							MESSAGE_ID = create_callback.get <dpp::message>().id;
 							bot->message_add_reaction(MESSAGE_ID, CHANNEL_ID, dpp::unicode_emoji::white_check_mark);
 						});
@@ -290,12 +296,15 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			++passed_files;
 		}
 	}
-	catch (self_invoked_exception const&) {}
+	catch (self_invoked_exception const&) {
+		failed = true;
+	}
 	catch (std::exception const& e) {
+		failed = true;
 		logger::log(std::string("Uncaught exception: ") + e.what());
-		if (TEST_MODE) {
-			logger::log("Audio file FAILED!");
-			++failed_files;
-		}
+	}
+	if (TEST_MODE && failed) {
+		logger::log("Audio file FAILED!");
+		++failed_files;
 	}
 }
