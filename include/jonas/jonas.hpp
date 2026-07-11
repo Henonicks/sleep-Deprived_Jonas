@@ -46,6 +46,7 @@ inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
 inline bool SNAP_TO_CHANNEL = true;
+inline bool REJOIN_ON_DISCONNECT = true;
 inline bool TEST_MODE = false;
 
 namespace stdfs = std::filesystem;

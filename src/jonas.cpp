@@ -84,7 +84,10 @@ dpp::discord_client* shard() {
 	dpp::discord_client* const curr_shard = bot->get_shard(0);
 	if (curr_shard != prev_shard) {
 		prev_shard = curr_shard;
-		curr_shard->disconnect_voice(GUILD_ID);
+		if (REJOIN_ON_DISCONNECT) {
+			curr_shard->disconnect_voice(GUILD_ID);
+			// This will get picked up by the voice state update handler and the bot will automatically reconnect
+		}
 	}
 	return bot->get_shard(0);
 }

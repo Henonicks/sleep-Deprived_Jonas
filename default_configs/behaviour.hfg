@@ -2,4 +2,5 @@
 /PAUSE_WHEN_ALONE\ | false # Whether to pause the currently playing song if there's no one else in the channel or not
 /DISPLAY_PLAYLIST\ | true # Whether to send a message showing the playlist and highlighting the currently playing track
 /SNAP_TO_CHANNEL\ | true # Whether to "snap" to the original channel (e.g. rejoin every time the bot is moved into another one)
+/REJOIN_ON_DISCONNECT\ | true # Whether to rejoin the voice channel on shard disconnect or not. Potential for higher stability if set to true but the timer on the voice channel will reset when nobody's in it.
 /TEST_MODE\ | false # Whether to test the files without playing them or to join the voice channel and try to play the files

@@ -40,7 +40,9 @@ The configs are only opened and read once, at the beginning of execution.
 ## Prerequisites
 
 - A C++-17-capable compiler
-- [D++](https://github.com/brainboxdotcc/DPP) 10.1.4 (any 10.1 version should work but .4 is recommended)
+- [D++](https://github.com/brainboxdotcc/DPP) 10.1.6+ (As of July 11th, 2026, this is the `dev` branch of the library)
+  - Any older version might suffice with the overall experimental `REJOIN_ON_DISCONNECT` flag set to `true` (default) if you don't need to run the bot forever as it might crash. It's still highly advised that you don't run the bot with a lower version of D++ than 10.1.6!
+  - If you run 10.1.6, you may try setting the flag to `false` so the channel's timer doesn't reset whenever the shard's connection does. Neither `false` nor `true` are guaranteed to work but `true` might be safer.
 - libsndfile (developed with 1.2.2-4)
 - libsamplerate (developed with 0.2.2-3)
 
