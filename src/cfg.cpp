@@ -58,7 +58,7 @@ void configure() {
 			std::cerr << "Falling back to the default behaviour in regard to snapping to the original channel, " << std::boolalpha << SNAP_TO_CHANNEL << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
-			REJOIN_ON_DISCONNECT = general_config["SNAP_TO_CHANNEL"];
+			REJOIN_ON_DISCONNECT = general_config["REJOIN_ON_DISCONNECT"];
 		}
 		catch (henifig::retrieval_exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to rejoining on shard disconnect, " << std::boolalpha << REJOIN_ON_DISCONNECT << std::noboolalpha << ", due to: " << e.what() << '\n';
