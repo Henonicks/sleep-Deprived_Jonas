@@ -36,32 +36,63 @@ void configure() {
 		try {
 			TRANSITION_DELAY_SECONDS = general_config["TRANSITION_DELAY_SECONDS"];
 		}
-		catch (henifig::retrieval_exception const& e) {
+		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default transition delay, " << TRANSITION_DELAY_SECONDS << ", due to: " << e.what() << '\n';
 		}
 		try {
 			PAUSE_WHEN_ALONE = general_config["PAUSE_WHEN_ALONE"];
 		}
-		catch (henifig::retrieval_exception const& e) {
+		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to pausing when alone, " << std::boolalpha << PAUSE_WHEN_ALONE << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
 			DISPLAY_PLAYLIST = general_config["DISPLAY_PLAYLIST"];
 		}
-		catch (henifig::retrieval_exception const& e) {
+		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to displaying the playlist, " << std::boolalpha << DISPLAY_PLAYLIST << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
 			SNAP_TO_CHANNEL = general_config["SNAP_TO_CHANNEL"];
 		}
-		catch (henifig::retrieval_exception const& e) {
+		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to snapping to the original channel, " << std::boolalpha << SNAP_TO_CHANNEL << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
 			REJOIN_ON_DISCONNECT = general_config["REJOIN_ON_DISCONNECT"];
 		}
-		catch (henifig::retrieval_exception const& e) {
+		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to rejoining on shard disconnect, " << std::boolalpha << REJOIN_ON_DISCONNECT << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
+		try {
+			CREATE_STATUS_SLASHCOMMAND = general_config["CREATE_STATUS_SLASHCOMMAND"];
+			try {
+				henifig::value_map const& status_command_map = general_config["STATUS_SLASHCOMMAND"];
+				STATUS_SLASHCOMMAND = {status_command_map.at("name").get <std::string>(), status_command_map.at("description").get <std::string>(), 0};
+				try {
+					henifig::value_array const& status_embed_array = general_config["STATUS_EMBED_COLOUR"];
+					STATUS_EMBED_COLOUR = 256 * 256 * static_cast <int>(status_embed_array[0]) +
+					                      256 * static_cast <int>(status_embed_array[1]) +
+					                      static_cast <int>(status_embed_array[2]);
+				}
+				catch (std::exception const& e) {
+					uint8_t const B = STATUS_EMBED_COLOUR % 256;
+					uint8_t const G = STATUS_EMBED_COLOUR / 256 % 256;
+					uint8_t const R = STATUS_EMBED_COLOUR / 256 / 256 % 256;
+					std::cerr << "Falling back to the default status embed colour, [" << static_cast <int>(R) << ", " << static_cast <int>(G) << ", " << static_cast <int>(B) << "], due to: " << e.what() << '\n';
+				}
+				try {
+					STATUS_RESPONSE_EPHEMERAL = general_config["STATUS_RESPONSE_EPHEMERAL"];
+				}
+				catch (std::exception const& e) {
+					std::cerr << "Falling back to the default ephemeralness of the status response messages, " << std::boolalpha << STATUS_RESPONSE_EPHEMERAL << std::noboolalpha << ", due to: " << e.what() << '\n';
+				}
+			}
+			catch (std::exception const& e) {
+				std::cerr << "Falling back to ignoring the status slashcommand since its definition couldn't be parsed, due to: " << e.what() << '\n';
+			}
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to creating the status slashcommand, " << std::boolalpha << CREATE_STATUS_SLASHCOMMAND << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 	}
 	catch (henifig::parse_exception const& e) {

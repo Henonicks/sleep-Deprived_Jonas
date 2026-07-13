@@ -47,6 +47,10 @@ inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
 inline bool SNAP_TO_CHANNEL = true;
 inline bool REJOIN_ON_DISCONNECT = true;
+inline bool CREATE_STATUS_SLASHCOMMAND = true;
+inline dpp::slashcommand STATUS_SLASHCOMMAND;
+inline uint32_t STATUS_EMBED_COLOUR = 0x00FFFF;
+inline bool STATUS_RESPONSE_EPHEMERAL = false;
 inline bool TEST_MODE = false;
 
 namespace stdfs = std::filesystem;
@@ -56,6 +60,8 @@ inline dpp::snowflake GUILD_ID, MESSAGE_ID;
 inline dpp::cluster* bot;
 inline dpp::discord_client* prev_shard;
 dpp::discord_client* shard();
+
+inline std::string curr_file_path = "*Initialising*";
 
 inline bool played_once;
 

@@ -16,10 +16,58 @@
 
 #include "jonas/jonas.hpp"
 
+/* Ripped straight from https://github.com/Henonicks/bump-watcher, thanks J!
+ * Will only return a meaningful value on Linux.
+ */
+int64_t proc_self_value(const std::string_view find_token) {
+	int64_t ret{0};
+	std::ifstream self_status{"/proc/self/status"};
+	while (self_status) {
+		std::string token;
+		self_status >> token;
+		if (token == find_token) {
+			self_status >> ret;
+			break;
+		}
+	}
+	self_status.close();
+	return ret;
+}
+
+int64_t get_ram_usage_bytes() {
+	return proc_self_value("VmRSS:") * 1024;
+}
+
+dpp::embed make_status_embed() {
+	std::string const uptime = std::to_string(bot->uptime().days)  + 'd' +
+	                     ' ' + std::to_string(bot->uptime().hours) + 'h' +
+	                     ' ' + std::to_string(bot->uptime().mins)  + 'm' +
+	                     ' ' + std::to_string(bot->uptime().secs)  + 's';
+	int64_t const ram_usage = get_ram_usage_bytes() / 1024 / 1024;
+	dpp::embed res = dpp::embed()
+		.set_colour(STATUS_EMBED_COLOUR)
+		.set_thumbnail(bot->me.get_avatar_url())
+		.set_title("Status")
+		.add_field("Uptime", uptime);
+	if (ram_usage > 0) {
+		res.add_field("Memory Usage", std::to_string(ram_usage) + "MiB");
+	}
+	res.add_field("Currently playing", curr_file_path.empty() ? "None" : curr_file_path);
+	return res;
+}
+
 void run() {
 	if (!TEST_MODE) {
 		bot->on_ready([](dpp::ready_t const& ready) {
 			if (dpp::run_once <struct init_audio_player>()) {
+				if (CREATE_STATUS_SLASHCOMMAND) {
+					STATUS_SLASHCOMMAND.application_id = bot->me.id;
+					bot->global_bulk_command_create({STATUS_SLASHCOMMAND}, [](dpp::confirmation_callback_t const& callback) {
+						if (callback.is_error()) {
+							logger::log("Failed to create the slashcommands: " + callback.get_error().message);
+						}
+					});
+				}
 				bot->channel_get(CHANNEL_ID, [ready](dpp::confirmation_callback_t const& callback) {
 					if (callback.is_error()) {
 						std::cerr << "Couldn't get the channel to join! " + callback.get_error().human_readable << '\n';
@@ -68,6 +116,16 @@ void run() {
 					someone_joined = true;
 					join_cv.notify_one();
 				}
+			}
+		});
+
+		bot->on_slashcommand([](dpp::slashcommand_t const& event) {
+			if (event.command.get_command_name() == STATUS_SLASHCOMMAND.name) {
+				dpp::message response = dpp::message().add_embed(make_status_embed());
+				if (STATUS_RESPONSE_EPHEMERAL) {
+					response.set_flags(dpp::m_ephemeral);
+				}
+				event.reply(response);
 			}
 		});
 
