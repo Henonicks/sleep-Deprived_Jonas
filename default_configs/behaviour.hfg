@@ -2,4 +2,19 @@
 /PAUSE_WHEN_ALONE\ | false # Whether to pause the currently playing song if there's no one else in the channel or not
 /DISPLAY_PLAYLIST\ | true # Whether to send a message showing the playlist and highlighting the currently playing track
 /SNAP_TO_CHANNEL\ | true # Whether to "snap" to the original channel (e.g. rejoin every time the bot is moved into another one)
+/REJOIN_ON_DISCONNECT\ | true # Whether to rejoin the voice channel on shard disconnect or not. Potential for higher stability if set to true but the timer on the voice channel will reset when nobody's in it.
+
+/CREATE_STATUS_SLASHCOMMAND\ | false  # Whether to create a status slashcommand on launch or not. Advised to switch off after it's created.
+/STATUS_SLASHCOMMAND{  # Do NOT change this after you've created the slashcommand already, unless CREATE_STATUS_SLASHCOMMAND is true.
+  $"name" | "status"  # Note: can't contain spaces.
+  $"description" | "The bot's runtime status, such as its duration and memory usage."  # Note: up to 100 characters.
+}\  # The status slashcommand's name and description can be adjusted to your liking here.
+/STATUS_EMBED_COLOUR[0, 255, 255]\  [#
+  - The array should contain 3 numbers ranging between 0-255.
+  - The format is RGB.
+  - If there are more than 3 items, the rest will be discarded.
+  - If there are less than 3 items or some of the used items aren't integer, something funny will happen
+  - If the numbers are higher than 255 or lower than 0, they will over/under-flow #]
+/STATUS_RESPONSE_EPHEMERAL\ | false
+
 /TEST_MODE\ | false # Whether to test the files without playing them or to join the voice channel and try to play the files
