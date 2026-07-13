@@ -6,7 +6,7 @@
 
 /CREATE_STATUS_SLASHCOMMAND\ | false  # Whether to create a status slashcommand on launch or not. Advised to switch off after it's created.
 /STATUS_SLASHCOMMAND{  # Do NOT change this after you've created the slashcommand already, unless CREATE_STATUS_SLASHCOMMAND is true.
-  $"name" | "status"  # Note: can't contain spaces.
+  $"name" | "status",  # Note: can't contain spaces.
   $"description" | "The bot's runtime status, such as its duration and memory usage."  # Note: up to 100 characters.
 }\  # The status slashcommand's name and description can be adjusted to your liking here.
 /STATUS_EMBED_COLOUR[0, 255, 255]\  [#
