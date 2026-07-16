@@ -170,7 +170,7 @@ void start_player() {
 			}
 			logger::log(log);
 			if (it->is_regular_file()) {
-				std::string_view const extension = it->path().extension().c_str();
+				std::string const extension = it->path().extension();
 				if (false
 				|| extension == ".wav"
 				|| extension == ".mp3"
