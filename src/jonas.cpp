@@ -120,12 +120,14 @@ void run() {
 		});
 
 		bot->on_slashcommand([](dpp::slashcommand_t const& event) {
-			if (event.command.get_command_name() == STATUS_SLASHCOMMAND.name) {
-				dpp::message response = dpp::message().add_embed(make_status_embed());
-				if (STATUS_RESPONSE_EPHEMERAL) {
-					response.set_flags(dpp::m_ephemeral);
+			if (event.command.guild_id == GUILD_ID) {
+				if (event.command.get_command_name() == STATUS_SLASHCOMMAND.name) {
+					dpp::message response = dpp::message().add_embed(make_status_embed());
+					if (STATUS_RESPONSE_EPHEMERAL) {
+						response.set_flags(dpp::m_ephemeral);
+					}
+					event.reply(response);
 				}
-				event.reply(response);
 			}
 		});
 
