@@ -61,6 +61,8 @@ inline dpp::cluster* bot;
 inline dpp::discord_client* prev_shard;
 dpp::discord_client* shard();
 
+inline std::string RESOURCES_PATH = "../resources";
+
 inline std::string curr_file_path = "*Initialising*";
 
 inline bool played_once;

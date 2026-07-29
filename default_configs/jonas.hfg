@@ -1,2 +1,3 @@
 /BOT_TOKEN\ | "" # The token of your Discord bot, found on the Discord Developer Portal
 /CHANNEL_ID\ | 0 # The ID of your voice channel.
+/RESOURCES_PATH\ | "../resources" # The path (if relative, then to the build directory) to the directory to pull the audio from

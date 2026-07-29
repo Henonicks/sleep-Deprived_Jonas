@@ -128,6 +128,13 @@ void configure() {
 				critical_whats += "jonas.hfg: No channel ID provided! Edit config/jonas.hfg to fix this!\n";
 			}
 
+			try {
+				RESOURCES_PATH = config["RESOURCES_PATH"].get <std::string>();
+			}
+			catch (std::exception const& e) {
+				std::cerr << "Falling back to the default resources path, " << RESOURCES_PATH << std::noboolalpha << ", due to: " << e.what() << '\n';
+			}
+
 			if (critical_whats.empty()) {
 				bot = new dpp::cluster(BOT_TOKEN, dpp::i_default_intents);
 				bot->on_log(logger::dpp_log);
@@ -162,7 +169,7 @@ void configure() {
 
 void start_player() {
 	while (true) {
-		file_entries = make_file_list("../resources");
+		file_entries = make_file_list(RESOURCES_PATH);
 		for (auto it = file_entries.begin(); it != file_entries.end(); ++it) {
 			std::string log = "Found " + it->path().filename().string();
 			if (it->is_directory()) {
