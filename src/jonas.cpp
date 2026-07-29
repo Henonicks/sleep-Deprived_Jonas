@@ -52,7 +52,9 @@ dpp::embed make_status_embed() {
 	if (ram_usage > 0) {
 		res.add_field("Memory Usage", std::to_string(ram_usage) + "MiB");
 	}
-	res.add_field("Currently playing", curr_file_path.empty() ? "None" : curr_file_path);
+	if (SONG_NAME_IN_STATUS) {
+		res.add_field("Currently playing", curr_file_path.empty() ? "None" : curr_file_path);
+	}
 	return res;
 }
 
@@ -120,12 +122,14 @@ void run() {
 		});
 
 		bot->on_slashcommand([](dpp::slashcommand_t const& event) {
-			if (event.command.get_command_name() == STATUS_SLASHCOMMAND.name) {
-				dpp::message response = dpp::message().add_embed(make_status_embed());
-				if (STATUS_RESPONSE_EPHEMERAL) {
-					response.set_flags(dpp::m_ephemeral);
+			if (event.command.guild_id == GUILD_ID) {
+				if (event.command.get_command_name() == STATUS_SLASHCOMMAND.name) {
+					dpp::message response = dpp::message().add_embed(make_status_embed());
+					if (STATUS_RESPONSE_EPHEMERAL) {
+						response.set_flags(dpp::m_ephemeral);
+					}
+					event.reply(response);
 				}
-				event.reply(response);
 			}
 		});
 

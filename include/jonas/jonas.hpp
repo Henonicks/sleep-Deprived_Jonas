@@ -45,6 +45,7 @@ constexpr int TARGET_CHANNELS = 2;
 inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
+inline bool SONG_NAME_IN_STATUS = true;
 inline bool SNAP_TO_CHANNEL = true;
 inline bool REJOIN_ON_DISCONNECT = true;
 inline bool CREATE_STATUS_SLASHCOMMAND = true;
@@ -60,6 +61,8 @@ inline dpp::snowflake GUILD_ID, MESSAGE_ID;
 inline dpp::cluster* bot;
 inline dpp::discord_client* prev_shard;
 dpp::discord_client* shard();
+
+inline std::string RESOURCES_PATH = "../resources";
 
 inline std::string curr_file_path = "*Initialising*";
 

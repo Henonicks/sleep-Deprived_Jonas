@@ -288,7 +288,7 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 				});
 			}
 			logger::log("Playing now!");
-			curr_file_path = '`' + file_entries[file_num].path().relative_path().string().substr(std::string_view("../resources/").size()) + '`';
+			curr_file_path = '`' + file_entries[file_num].path().relative_path().string().substr(RESOURCES_PATH.size()) + '`';
 			send_audio(int16_sample_buffer.get(), samples);
 			std::this_thread::sleep_for(std::chrono::seconds(TRANSITION_DELAY_SECONDS));
 			curr_file_path = "*Preparing to play next*";
