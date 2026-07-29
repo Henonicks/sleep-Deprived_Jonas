@@ -45,6 +45,7 @@ constexpr int TARGET_CHANNELS = 2;
 inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
+inline bool SONG_NAME_IN_STATUS = true;
 inline bool SNAP_TO_CHANNEL = true;
 inline bool REJOIN_ON_DISCONNECT = true;
 inline bool CREATE_STATUS_SLASHCOMMAND = true;

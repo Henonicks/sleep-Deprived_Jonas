@@ -52,7 +52,9 @@ dpp::embed make_status_embed() {
 	if (ram_usage > 0) {
 		res.add_field("Memory Usage", std::to_string(ram_usage) + "MiB");
 	}
-	res.add_field("Currently playing", curr_file_path.empty() ? "None" : curr_file_path);
+	if (SONG_NAME_IN_STATUS) {
+		res.add_field("Currently playing", curr_file_path.empty() ? "None" : curr_file_path);
+	}
 	return res;
 }
 

@@ -52,6 +52,12 @@ void configure() {
 			std::cerr << "Falling back to the default behaviour in regard to displaying the playlist, " << std::boolalpha << DISPLAY_PLAYLIST << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
+			SONG_NAME_IN_STATUS = general_config["SONG_NAME_IN_STATUS"];
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to displaying the name of the currently playing song in the bot's status, " << std::boolalpha << SONG_NAME_IN_STATUS << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
+		try {
 			SNAP_TO_CHANNEL = general_config["SNAP_TO_CHANNEL"];
 		}
 		catch (std::exception const& e) {
