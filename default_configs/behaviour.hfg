@@ -1,9 +1,10 @@
-/TRANSITION_DELAY_SECONDS\ | 1 # The delay to wait between each song
-/PAUSE_WHEN_ALONE\ | false # Whether to pause the currently playing song if there's no one else in the channel or not
-/DISPLAY_PLAYLIST\ | true # Whether to send a message showing the playlist and highlighting the currently playing track
-/SONG_NAME_IN_STATUS\ | true # Whether to display the name of the currently playing song in the response to the /status command.
-/SNAP_TO_CHANNEL\ | true # Whether to "snap" to the original channel (e.g. rejoin every time the bot is moved into another one)
-/REJOIN_ON_DISCONNECT\ | true # Whether to rejoin the voice channel on shard disconnect or not. Potential for higher stability if set to true but the timer on the voice channel will reset when nobody's in it.
+/TRANSITION_DELAY_SECONDS\ | 1  # The delay to wait between each song
+/PAUSE_WHEN_ALONE\ | false  # Whether to pause the currently playing song if there's no one else in the channel or not
+/DISPLAY_PLAYLIST\ | true  # Whether to send a message showing the playlist and highlighting the currently playing track
+/SONG_NAME_IN_STATUS\ | true  # Whether to display the name of the currently playing song in the response to the /status command.
+/TRIM_SILENCE\ | true  # Whether to trim silence off of the beginning and end of the audio (never in the middle)
+/SNAP_TO_CHANNEL\ | true  # Whether to "snap" to the original channel (e.g. rejoin every time the bot is moved into another one)
+/REJOIN_ON_DISCONNECT\ | true  # Whether to rejoin the voice channel on shard disconnect or not. Potential for higher stability if set to true but the timer on the voice channel will reset when nobody's in it.
 
 /CREATE_STATUS_SLASHCOMMAND\ | false  # Whether to create a status slashcommand on launch or not. Advised to switch off after it's created.
 /STATUS_SLASHCOMMAND{  # Do NOT change this after you've created the slashcommand already, unless CREATE_STATUS_SLASHCOMMAND is true.
@@ -17,5 +18,10 @@
   - If there are less than 3 items or some of the used items aren't integer, something funny will happen
   - If the numbers are higher than 255 or lower than 0, they will over/under-flow #]
 /STATUS_RESPONSE_EPHEMERAL\ | false
+
+/LOGFILE_SIZE_THRESHOLD\ | 8000000  # The threshold for the size of the logfiles. If a file is larger than this threshold, it will automatically be truncated.
+
+/NORMALISE_TO\ | 1  # The highest (floating-point) value to normalise the audio to. Clipped audio is always normalised. Highly recommended to be kept between 0.0 and 1.0, but not either of the bounds. Negative values are allowed and will work the same way but invert the audio in the process.
+/NORMALISE_NON_CLIPPING\ | true  # Whether to normalise non-clipping audio so that no matter what the peak of each audio is, the bot plays the loudest parts at around the same volume.
 
 /TEST_MODE\ | false # Whether to test the files without playing them or to join the voice channel and try to play the files

@@ -58,6 +58,12 @@ void configure() {
 			std::cerr << "Falling back to the default behaviour in regard to displaying the name of the currently playing song in the bot's status, " << std::boolalpha << SONG_NAME_IN_STATUS << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 		try {
+			TRIM_SILENCE = general_config["TRIM_SILENCE"];
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to trimming silence, " << std::boolalpha << TRIM_SILENCE << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
+		try {
 			SNAP_TO_CHANNEL = general_config["SNAP_TO_CHANNEL"];
 		}
 		catch (std::exception const& e) {
@@ -99,6 +105,24 @@ void configure() {
 		}
 		catch (std::exception const& e) {
 			std::cerr << "Falling back to the default behaviour in regard to creating the status slashcommand, " << std::boolalpha << CREATE_STATUS_SLASHCOMMAND << std::noboolalpha << ", due to: " << e.what() << '\n';
+		}
+		try {
+			LOGFILE_SIZE_THRESHOLD = general_config["LOGFILE_SIZE_THRESHOLD"];
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default logfile size threshold, " << LOGFILE_SIZE_THRESHOLD << ", due to: " << e.what() << '\n';
+		}
+		try {
+			NORMALISE_TO = general_config["NORMALISE_TO"];
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default normalisation bound, " << NORMALISE_TO << ", due to: " << e.what() << '\n';
+		}
+		try {
+			NORMALISE_NON_CLIPPING = general_config["NORMALISE_NON_CLIPPING"];
+		}
+		catch (std::exception const& e) {
+			std::cerr << "Falling back to the default behaviour in regard to the normalisation of non-clipping audio, " << std::boolalpha << NORMALISE_NON_CLIPPING << std::noboolalpha << ", due to: " << e.what() << '\n';
 		}
 	}
 	catch (henifig::parse_exception const& e) {
@@ -199,6 +223,7 @@ void start_player() {
 		if (TEST_MODE) {
 			break;
 		}
+		return;
 	}
 }
 

@@ -16,20 +16,54 @@
 
 #include "jonas/logging.hpp"
 
+#include "jonas/jonas.hpp"
+
 #include <filesystem>
 
 void logger::open() {
 	if (!std::filesystem::is_directory("../logging")) {
 		std::filesystem::create_directory("../logging");
 	}
-	logfile.open("../logging/logfile.log");
-	dpp_logfile.open("../logging/dpp_logfile.log");
+	if (!logfile.stream.is_open()) {
+		logfile.stream.open(logfile.filename, std::ofstream::out | std::ofstream::trunc);
+	}
+	if (!dpp_logfile.stream.is_open()) {
+		dpp_logfile.stream.open(dpp_logfile.filename, std::ofstream::out | std::ofstream::trunc);
+	}
 }
 
+#ifndef CUSTOM_LOG_TRUNCATOR
+void logger::truncate(logfile_t& file) {
+	if (file.stream.tellp() >= LOGFILE_SIZE_THRESHOLD) {
+		file.stream.flush();
+		if (file.backup != nullptr) {
+			file.backup->stream.close();
+			file.backup->stream.clear();
+			file.backup->stream.open(file.backup->filename, std::ofstream::out | std::ofstream::trunc);
+			file.backup->stream << file.buffer.str() << std::flush;
+		}
+		file.stream.close();
+		file.stream.clear();
+		file.buffer.str("");
+		file.stream.open(file.filename, std::ofstream::out | std::ofstream::trunc);
+	}
+}
+#else
+#include "jonas/user_defined/log_truncator.hpp"
+#endif
+
 void logger::log(std::string_view const msg) {
-	logfile << '[' << dpp::utility::current_date_time() << "]: " << msg << std::endl;
+	truncate(logfile);
+	std::stringstream log_stream;
+	log_stream << '[' << dpp::utility::current_date_time() << "]: " << msg << '\n';
+	logfile.stream << log_stream.str() << std::flush;
+	logfile.buffer << log_stream.str();
 }
 
 void logger::dpp_log(dpp::log_t const& log) {
-	dpp_logfile << '[' << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(log.severity) << ": " << log.message << std::endl;
+	truncate(dpp_logfile);
+	std::stringstream log_stream;
+	log_stream << '[' << dpp::utility::current_date_time() << "] " << dpp::utility::loglevel(log.severity) << ": " << log.message << '\n';
+	dpp_logfile.stream << log_stream.str() << std::flush;
+	dpp_logfile.buffer << log_stream.str();
 }

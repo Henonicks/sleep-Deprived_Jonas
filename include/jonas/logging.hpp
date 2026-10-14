@@ -21,9 +21,22 @@
 
 #include <dpp/dispatcher.h>
 
+struct logfile_t {
+	logfile_t* backup;
+	std::ofstream stream{};
+	std::string filename{};
+	explicit logfile_t(std::string_view const filename, logfile_t* const backup = nullptr) : backup{backup}, filename{filename} {}
+
+	std::stringstream buffer{};
+};
+
 class logger {
-	static inline std::ofstream logfile{};
-	static inline std::ofstream dpp_logfile{};
+	static inline logfile_t logfile_backup{"../logging/logfile_backup.log"};
+	static inline logfile_t logfile{"../logging/logfile.log", &logfile_backup};
+	static inline logfile_t dpp_logfile_backup{"../logging/dpp_logfile_backup.log"};
+	static inline logfile_t dpp_logfile{"../logging/dpp_logfile.log", &dpp_logfile_backup};
+
+	static void truncate(logfile_t& file);
 public:
 	logger() = delete;
 	static void open();

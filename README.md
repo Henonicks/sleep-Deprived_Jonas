@@ -82,6 +82,12 @@ If something went wrong with the decoding/conversion of a file, you can peek at 
 be created for you if it doesn't exist. If something went wrong, and it's something D++ knows more about, take a look at `dpp_logfile.log`
 in the same location.
 
+If upon printing a line a log file's size exceeds the threshold (8'000'000 bytes by default), it will be cleared and its previous output will be placed in a respectively named backup file, replacing whatever content the second one had.
+
+If you wish to specify the algorithm of the log truncation, you're free to add your own truncator. A template has been made for you in `include/user_defined` and `src/user_defined`. You really only have to edit the template function in `src/user_defined/log_truncator.cpp` but you can use both the header and the source code files for whatever you need. But make sure to append this to your cmake command:
+
+    -DCUSTOM_LOG_TRUNCATOR=1
+
 ## Extending the bot
 
 You can add as many header files and .cpp files into the src and include folders as you wish. All .cpp files in the src directory will be linked together into the bot's executable.

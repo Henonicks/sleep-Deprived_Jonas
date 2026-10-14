@@ -46,12 +46,16 @@ inline int TRANSITION_DELAY_SECONDS = 1;
 inline bool PAUSE_WHEN_ALONE = false;
 inline bool DISPLAY_PLAYLIST = true;
 inline bool SONG_NAME_IN_STATUS = true;
+inline bool TRIM_SILENCE = true;
 inline bool SNAP_TO_CHANNEL = true;
 inline bool REJOIN_ON_DISCONNECT = true;
 inline bool CREATE_STATUS_SLASHCOMMAND = true;
 inline dpp::slashcommand STATUS_SLASHCOMMAND;
 inline uint32_t STATUS_EMBED_COLOUR = 0x00FFFF;
 inline bool STATUS_RESPONSE_EPHEMERAL = false;
+inline uint64_t LOGFILE_SIZE_THRESHOLD = 8'000'000;
+inline float NORMALISE_TO = 0.999969;
+inline bool NORMALISE_NON_CLIPPING = true;
 inline bool TEST_MODE = false;
 
 namespace stdfs = std::filesystem;

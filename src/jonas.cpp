@@ -144,6 +144,9 @@ void run() {
 
 dpp::discord_client* shard() {
 	dpp::discord_client* const curr_shard = bot->get_shard(0);
+	if (curr_shard == nullptr) {
+		return nullptr;
+	}
 	if (curr_shard != prev_shard) {
 		prev_shard = curr_shard;
 		if (REJOIN_ON_DISCONNECT) {
@@ -151,11 +154,15 @@ dpp::discord_client* shard() {
 			// This will get picked up by the voice state update handler and the bot will automatically reconnect
 		}
 	}
-	return bot->get_shard(0);
+	return curr_shard;
 }
 
 dpp::discord_voice_client* get_voice_client() {
-	dpp::voiceconn* const voice_connection = shard()->get_voice(GUILD_ID);
+	dpp::discord_client* curr_shard = shard();
+	if (curr_shard == nullptr) {
+		return nullptr;
+	}
+	dpp::voiceconn* const voice_connection = curr_shard->get_voice(GUILD_ID);
 	if (voice_connection == nullptr) {
 		return nullptr;
 	}

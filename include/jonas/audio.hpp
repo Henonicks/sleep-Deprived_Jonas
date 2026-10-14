@@ -26,6 +26,7 @@ inline std::atomic <bool> someone_joined;
 
 inline size_t passed_files, failed_files;
 
+[[nodiscard]] float* normalise(float const input[], sf_count_t input_size);
 [[nodiscard]] int16_t* mono_to_stereo(int16_t const input[], sf_count_t input_size);
 [[nodiscard]] int16_t* to_stereo(int16_t const input[], sf_count_t input_size, int channels);
 [[nodiscard]] int16_t* trim_off_silence(int16_t const input[], sf_count_t input_size, sf_count_t* output_size);

@@ -5,7 +5,12 @@ set(BOT_NAME "sleepless_jonas")
 
 project(${BOT_NAME})
 aux_source_directory("src" coresrc)
+aux_source_directory("src/user_defined" userdefined)
 add_executable(${BOT_NAME} ${coresrc})
+
+if (CUSTOM_LOG_TRUNCATOR)
+    target_compile_definitions(${BOT_NAME} PUBLIC CUSTOM_LOG_TRUNCATOR)
+endif()
 
 add_subdirectory(Henifig)
 
