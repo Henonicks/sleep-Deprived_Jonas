@@ -20,6 +20,23 @@
 
 #include <dpp/unicode_emoji.h>
 
+[[nodiscard]] float* normalise(float const input[], sf_count_t input_size) {
+	if (input_size == 0) {
+		logger::log("The data is reportedly empty! There is nothing to convert!");
+		return nullptr;
+	}
+	auto [min_ptr, max_ptr] = std::minmax_element(input, input + input_size);
+	float const abs_max = std::max(std::abs(*min_ptr), std::abs(*max_ptr));
+	logger::log(std::format("Upon normalising, the max absolute value is {}.", abs_max));
+	float const markiplier = NORMALISE_TO / abs_max;
+	auto* const output = new float[input_size];
+	float max{};
+	for (int i = 0; i < input_size; i++) {
+		max = std::max(max, std::abs(output[i] = input[i] * markiplier));
+	}
+	return output;
+}
+
 [[nodiscard]] int16_t* mono_to_stereo(int16_t const input[], sf_count_t const input_size) {
 	if (input_size == 0) {
 		logger::log("The data is reportedly empty! There is nothing to convert!");
@@ -75,15 +92,15 @@
 		*output_size = 0;
 		return nullptr;
 	}
-	if (input_size % 2 != 0) {
-		logger::log("The audio size is indivisible by two, impossible for stereo audio!");
+	if (input_size % TARGET_CHANNELS != 0) {
+		logger::log(std::format("The audio size is indivisible by two, impossible for audio with {} channels!", TARGET_CHANNELS));
 		*output_size = 0;
 		return nullptr;
 	}
 	sf_count_t l, r;
-	for (l = 0; l < input_size; l += 2) {
+	for (l = 0; l < input_size; l += TARGET_CHANNELS) {
 		bool is_data{};
-		for (int j = 0; j < 2; j++) {
+		for (int j = 0; j < TARGET_CHANNELS; j++) {
 			if (input[l + j] != 0) {
 				is_data = true;
 				break;
@@ -94,9 +111,9 @@
 		}
 	}
 	logger::log("Trimmed " + std::to_string(l) + " samples off from the beginning.");
-	for (r = input_size - 1; r > l; r -= 2) {
+	for (r = input_size - 1; r > l; r -= TARGET_CHANNELS) {
 		bool is_data{};
-		for (int j = 0; j < 2; j++) {
+		for (int j = 0; j < TARGET_CHANNELS; j++) {
 			if (input[r - j] != 0) {
 				is_data = true;
 				break;
@@ -107,7 +124,7 @@
 		}
 	}
 	logger::log("Trimmed " + std::to_string(input_size - r) + " samples off from the end.");
-	*output_size = r - l + (input_size % 2 == 0);
+	*output_size = r - l + (input_size % TARGET_CHANNELS == 0);
 	auto* const output = new int16_t[*output_size];
 	std::copy_n(input + l, *output_size, output);
 	return output;
@@ -123,9 +140,17 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 	for (int i = 0; i < input_size; i += dpp::send_audio_raw_max_length / 2) {
 		auto const samples_to_send = std::min <sf_count_t>(dpp::send_audio_raw_max_length / 2, input_size - i);
 		if (dpp::find_channel(CHANNEL_ID)->get_voice_members().size() > 1) {
-			std::shared_lock L(shard()->voice_mutex);
+			dpp::discord_client* curr_shard = shard();
+			if (curr_shard == nullptr) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
+				continue;
+			}
+			std::shared_lock L(curr_shard->voice_mutex);
 			dpp::discord_voice_client* voice_client = get_voice_client();
-			if (voice_client != nullptr) {
+			if (voice_client == nullptr) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
+			}
+			else {
 				voice_client->send_audio_raw(
 					reinterpret_cast <uint16_t*>(
 						const_cast <int16_t*>(input + i)
@@ -134,7 +159,12 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 				);
 				L.unlock();
 				while (true) {
-					std::shared_lock L2(shard()->voice_mutex);
+					curr_shard = shard();
+					if (curr_shard == nullptr) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
+						continue;
+					}
+					std::shared_lock L2(curr_shard->voice_mutex);
 					voice_client = get_voice_client();
 					if (voice_client != nullptr) {
 						if (voice_client->get_secs_remaining() > 1.0f) {
@@ -151,9 +181,6 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 					}
 				}
 			}
-			if (voice_client == nullptr) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
-			}
 		}
 		else if (PAUSE_WHEN_ALONE) {
 			someone_joined = false;
@@ -164,7 +191,11 @@ void send_audio(int16_t const input[], sf_count_t const input_size) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(samples_to_send / TARGET_CHANNELS / (TARGET_SAMPLE_RATE / 1000)));
 		}
 	}
-	std::shared_lock L(shard()->voice_mutex);
+	dpp::discord_client* const curr_shard = shard();
+	if (curr_shard == nullptr) {
+		return;
+	}
+	std::shared_lock L(curr_shard->voice_mutex);
 	dpp::discord_voice_client* const voice_client = get_voice_client();
 	if (voice_client != nullptr) {
 		std::chrono::milliseconds const sleep_time{static_cast <int>(voice_client->get_secs_remaining() * 1000)};
@@ -184,6 +215,8 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 	bool failed{};
 	try {
 		SndfileHandle audio_file;
+		std::fstream input_file;
+		// TODO: fast open
 		auto const& path = file_entries[file_num].path();
 		if (path.extension() == ".pcm" || path.extension() == ".raw") {
 			audio_file = SndfileHandle(path, SFM_READ, SF_FORMAT_RAW | SF_FORMAT_PCM_16, TARGET_CHANNELS, TARGET_SAMPLE_RATE);
@@ -206,7 +239,8 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			throw self_invoked_exception{};
 		}
 
-		std::unique_ptr <int16_t[]> int16_sample_buffer;
+		std::unique_ptr <float[]> float_sample_buffer(new float[samples]);
+		audio_file.read(float_sample_buffer.get(), samples);
 
 		if (samplerate != TARGET_SAMPLE_RATE) {
 			auto const samplerate_ratio = static_cast <float>(TARGET_SAMPLE_RATE) / static_cast <float>(samplerate);
@@ -217,31 +251,28 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			logger::log("New frames:        " + std::to_string(new_frames));
 			logger::log("New sample count:  " + std::to_string(new_samples));
 
-			std::unique_ptr <float[]> const float_sample_buffer_in(new float[samples]);
-			audio_file.read(float_sample_buffer_in.get(), samples);
-			std::unique_ptr <float[]> const float_sample_buffer_out(new float[new_samples]);
+			std::unique_ptr <float[]> float_sample_buffer_out(new float[new_samples]);
 			SRC_DATA src_data = {
-				.data_in = float_sample_buffer_in.get(),
+				.data_in = float_sample_buffer.get(),
 				.data_out = float_sample_buffer_out.get(),
 				.input_frames = frames,
 				.output_frames = new_frames,
 				.src_ratio = samplerate_ratio,
 			};
 			src_simple(&src_data, SRC_SINC_BEST_QUALITY, channels);
-			int16_sample_buffer.reset(new int16_t[new_samples]);
-			src_float_to_short_array(float_sample_buffer_out.get(), int16_sample_buffer.get(), new_samples);
-
-			logger::log("Zeros in float input:  " + std::to_string(std::count_if(float_sample_buffer_in.get(), float_sample_buffer_in.get() + samples, [](int16_t const x) { return x != 0; })) + '/' + std::to_string(samples));
-			logger::log("Zeros in float output: " + std::to_string(std::count_if(float_sample_buffer_out.get(), float_sample_buffer_out.get() + new_samples, [](int16_t const x) { return x != 0; })) + '/' + std::to_string(new_samples));
-			logger::log("Zeros in 16-bit:       " + std::to_string(std::count_if(int16_sample_buffer.get(), int16_sample_buffer.get() + new_samples, [](int16_t const x) { return x != 0; })) + '/' + std::to_string(new_samples));
-
+			float_sample_buffer.swap(float_sample_buffer_out);
 			samples = new_samples;
 		}
-		else {
-			int16_sample_buffer.reset(new int16_t[samples]);
-			audio_file.read(int16_sample_buffer.get(), samples);
+
+		auto [min_ptr, max_ptr] = std::minmax_element(float_sample_buffer.get(), float_sample_buffer.get() + samples);
+		float const abs_max = std::max(std::abs(*min_ptr), std::abs(*max_ptr));
+		if (NORMALISE_NON_CLIPPING || abs_max > std::abs(NORMALISE_TO)) {
+			float_sample_buffer.reset(normalise(float_sample_buffer.get(), samples));
 		}
-		if (channels != 2) {
+
+		std::unique_ptr <int16_t[]> int16_sample_buffer(new int16_t[samples]);
+		src_float_to_short_array(float_sample_buffer.get(), int16_sample_buffer.get(), samples);
+		if (channels != TARGET_CHANNELS) {
 			logger::log("Non-stereo audio is unplayable by D++. Converting.");
 			int16_t* const stereo_sample_buffer = to_stereo(int16_sample_buffer.get(), samples, channels);
 			if (stereo_sample_buffer == nullptr) {
@@ -249,14 +280,16 @@ void play_file(size_t const file_num, bool const to_prepend_silence) {
 			}
 			logger::log("Converted!");
 			int16_sample_buffer.reset(stereo_sample_buffer);
-			samples = samples / channels * 2;
+			samples = samples / channels * TARGET_CHANNELS;
 			logger::log("New sample count: " + std::to_string(samples));
 		}
-		int16_t* const silence_less = trim_off_silence(int16_sample_buffer.get(), samples, &samples);
-		if (silence_less == nullptr) {
-			throw self_invoked_exception{};
+		if (TRIM_SILENCE) {
+			int16_t* const silence_less = trim_off_silence(int16_sample_buffer.get(), samples, &samples);
+			if (silence_less == nullptr) {
+				throw self_invoked_exception{};
+			}
+			int16_sample_buffer.reset(silence_less);
 		}
-		int16_sample_buffer.reset(silence_less);
 		if (to_prepend_silence) {
 			logger::log("No song has been sent yet. Prepending silence.");
 			int16_sample_buffer.reset(prepend_silence(int16_sample_buffer.get(), samples, TARGET_SAMPLE_RATE));
